@@ -173,9 +173,6 @@ function TaskManager() {
   return (
     <div className="space-y-6">
       <section>
-        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-          YOUR WORKSPACE
-        </p>
         <h2 className="mt-1 text-3xl font-bold tracking-tight">My Tasks</h2>
       </section>
 
@@ -259,10 +256,6 @@ function TaskManager() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-semibold">{activeTab}</h3>
-
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Drag a task onto another task to reorder it.
-          </p>
         </div>
 
         {filteredTasks.length === 0 ? (

@@ -30,7 +30,6 @@ function App() {
 
   return (
     <div className={darkMode ? "dark min-h-screen" : "min-h-screen"}>
-      <BrowserRouter>
         <Routes>
           <Route
             path="/"
@@ -50,9 +49,8 @@ function App() {
                   <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
                       <div>
-                        <h1 className="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
-                          {" "}
-                          Task Manager{" "}
+                        <h1 className="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-600">
+                          Task Manager
                         </h1>
                       </div>
 
@@ -90,7 +88,6 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
     </div>
   );
 }
