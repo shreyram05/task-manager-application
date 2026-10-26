@@ -33,6 +33,7 @@ function TaskManager() {
     }
   }, [tasks, storageKey]);
 
+  // Adds a new task or updates an existing task
   function addTask(event) {
     event.preventDefault();
 
@@ -62,6 +63,7 @@ function TaskManager() {
     setTask("");
   }
 
+  // Deletes a task
   function deleteTask(taskId) {
     setTasks((previousTasks) =>
       previousTasks.filter((item) => item.id !== taskId),
@@ -73,6 +75,7 @@ function TaskManager() {
     }
   }
 
+  // Loads the selected task into the input field for editing 
   function editTask(taskId) {
     const selectedTask = tasks.find((item) => item.id === taskId);
 
@@ -88,6 +91,7 @@ function TaskManager() {
     setTask("");
   }
 
+  // Changes the status of a task
   function updateStatus(taskId, newStatus) {
     setTasks((previousTasks) =>
       previousTasks.map((item) =>
@@ -96,7 +100,7 @@ function TaskManager() {
     );
   }
 
-  // Reorder tasks using the visible filtered list.
+  // Handles the task drag-and-reorder operation and updates task order
   function handleDragEnd(result) {
     if (!result.destination) {
       return;
@@ -120,13 +124,10 @@ function TaskManager() {
       );
 
       const [movedTask] = reorderedTasks.splice(sourceIndex, 1);
-
-      // Find the target again after removing the moved task.
       const targetIndex = reorderedTasks.findIndex(
         (item) => item.id === targetTask.id,
       );
 
-      // Moving downward means inserting after the target.
       const insertIndex =
         result.source.index < result.destination.index
           ? targetIndex + 1
@@ -158,6 +159,7 @@ function TaskManager() {
     { label: "Done", count: completedCount },
   ];
 
+  // Returns the appropriate Tailwind CSS classes for each task status badge
   function statusStyle(status) {
     if (status === "Done") {
       return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";

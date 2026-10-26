@@ -11,6 +11,7 @@ function Login({ darkMode, toggleTheme }) {
   const { login, signup } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Handles login or signup form submission
   function handleSubmit(event) {
     event.preventDefault();
     setError("");
@@ -27,6 +28,7 @@ function Login({ darkMode, toggleTheme }) {
     navigate("/dashboard");
   }
 
+  // Switches between login and signup modes
   function switchMode() {
     setIsSignup((previousMode) => !previousMode);
     setError("");

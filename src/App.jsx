@@ -16,6 +16,7 @@ function App() {
     }
   });
 
+  // Saving the application's theme preference
   useEffect(() => {
     try {
       localStorage.setItem("task-manager-theme", darkMode ? "dark" : "light");
@@ -24,6 +25,7 @@ function App() {
     }
   }, [darkMode]);
 
+  // Switch between light mode and dark mode
   function toggleTheme() {
     setDarkMode((previousMode) => !previousMode);
   }

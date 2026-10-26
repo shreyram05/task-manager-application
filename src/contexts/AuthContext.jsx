@@ -4,6 +4,7 @@ export const AuthContext = createContext();
 const ACCOUNTS_KEY = "task-manager-accounts";
 const USER_KEY = "task-manager-user";
 
+// Get saved accounts from localStorage
 function getSavedAccounts() {
   try {
     const savedAccounts = localStorage.getItem(ACCOUNTS_KEY);
@@ -24,6 +25,7 @@ function getSavedAccounts() {
   }
 }
 
+// Get the previously logged-in user
 function getSavedUser() {
   try {
     const savedUser = localStorage.getItem(USER_KEY);
@@ -48,9 +50,11 @@ function getSavedUser() {
   }
 }
 
+// Provide authentication functions and user information to the app
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getSavedUser);
 
+  // Save the user's login session
   function saveLogin(username) {
     const loggedInUser = { username };
     try {
@@ -62,6 +66,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Create a new user account
   function signup(username, password) {
     const cleanUsername = username.trim();
     if (cleanUsername.length < 3) {
@@ -119,6 +124,7 @@ export function AuthProvider({ children }) {
     };
   }
 
+  // Verifying the user's credentials and logging them in
   function login(username, password) {
     const cleanUsername = username.trim();
     const accounts = getSavedAccounts();
@@ -147,6 +153,7 @@ export function AuthProvider({ children }) {
     };
   }
 
+  // Logging out the current user
   function logout() {
     try {
       localStorage.removeItem(USER_KEY);
