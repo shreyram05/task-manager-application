@@ -1,27 +1,69 @@
-
 import { createContext, useState } from "react";
 
 export const AuthContext = createContext();
-
 const ACCOUNTS_KEY = "task-manager-accounts";
+const USER_KEY = "task-manager-user";
 
 function getSavedAccounts() {
   try {
     const savedAccounts = localStorage.getItem(ACCOUNTS_KEY);
     const accounts = savedAccounts ? JSON.parse(savedAccounts) : [];
 
-    return Array.isArray(accounts) ? accounts : [];
+    if (!Array.isArray(accounts)) {
+      return [];
+    }
+
+    return accounts.filter(
+      (account) =>
+        account &&
+        typeof account.username === "string" &&
+        typeof account.password === "string",
+    );
   } catch {
     return [];
   }
 }
 
+function getSavedUser() {
+  try {
+    const savedUser = localStorage.getItem(USER_KEY);
+    if (!savedUser) {
+      return null;
+    }
+    const user = JSON.parse(savedUser);
+    const accounts = getSavedAccounts();
+    const accountExists = accounts.some(
+      (account) => account.username === user?.username,
+    );
+
+    if (accountExists) {
+      return {
+        username: user.username,
+      };
+    }
+    localStorage.removeItem(USER_KEY);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(getSavedUser);
+
+  function saveLogin(username) {
+    const loggedInUser = { username };
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   function signup(username, password) {
     const cleanUsername = username.trim();
-
     if (cleanUsername.length < 3) {
       return {
         success: false,
@@ -37,12 +79,10 @@ export function AuthProvider({ children }) {
     }
 
     const accounts = getSavedAccounts();
-
     const accountExists = accounts.some(
       (account) =>
         account.username.toLowerCase() === cleanUsername.toLowerCase(),
     );
-
     if (accountExists) {
       return {
         success: false,
@@ -67,17 +107,24 @@ export function AuthProvider({ children }) {
       };
     }
 
-    setUser({ username: cleanUsername });
-
-    return { success: true };
+    if (!saveLogin(cleanUsername)) {
+      return {
+        success: false,
+        error:
+          "Account created, but the login session could not be saved. Please log in.",
+      };
+    }
+    return {
+      success: true,
+    };
   }
 
   function login(username, password) {
+    const cleanUsername = username.trim();
     const accounts = getSavedAccounts();
-
     const matchingAccount = accounts.find(
       (account) =>
-        account.username.toLowerCase() === username.trim().toLowerCase() &&
+        account.username.toLowerCase() === cleanUsername.toLowerCase() &&
         account.password === password,
     );
 
@@ -88,13 +135,24 @@ export function AuthProvider({ children }) {
       };
     }
 
-    setUser({ username: matchingAccount.username });
+    if (!saveLogin(matchingAccount.username)) {
+      return {
+        success: false,
+        error: "Unable to save your login session.",
+      };
+    }
 
-    return { success: true };
+    return {
+      success: true,
+    };
   }
 
   function logout() {
-    setUser(null);
+    try {
+      localStorage.removeItem(USER_KEY);
+    } finally {
+      setUser(null);
+    }
   }
 
   return (
@@ -103,4 +161,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
