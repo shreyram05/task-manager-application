@@ -16,7 +16,13 @@ function TaskManager() {
     try {
       const savedTasks = localStorage.getItem(storageKey);
       const parsedTasks = savedTasks ? JSON.parse(savedTasks) : [];
-      return Array.isArray(parsedTasks) ? parsedTasks : [];
+      if (!Array.isArray(parsedTasks)) {
+        return [];
+      }
+      return parsedTasks.map((item) => ({
+        ...item,
+        id: item.id ?? crypto.randomUUID(),
+      }));
     } catch {
       return [];
     }
@@ -49,11 +55,10 @@ function TaskManager() {
           item.id === editId ? { ...item, title: trimmedTask } : item,
         ),
       );
-
       setEditId(null);
     } else {
       const newTask = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: crypto.randomUUID(),
         title: trimmedTask,
         status: "To Do",
       };
@@ -75,7 +80,7 @@ function TaskManager() {
     }
   }
 
-  // Loads the selected task into the input field for editing 
+  // Loads the selected task into the input field for editing
   function editTask(taskId) {
     const selectedTask = tasks.find((item) => item.id === taskId);
 
@@ -101,6 +106,7 @@ function TaskManager() {
   }
 
   // Handles the task drag-and-reorder operation and updates task order
+
   function handleDragEnd(result) {
     if (!result.destination) {
       return;
@@ -110,32 +116,26 @@ function TaskManager() {
       return;
     }
 
-    const sourceTask = filteredTasks[result.source.index];
-    const targetTask = filteredTasks[result.destination.index];
+    const reorderedTasks = [...filteredTasks];
 
-    if (!sourceTask || !targetTask) {
-      return;
-    }
+    const [movedTask] = reorderedTasks.splice(result.source.index, 1);
+
+    reorderedTasks.splice(result.destination.index, 0, movedTask);
 
     setTasks((previousTasks) => {
-      const reorderedTasks = [...previousTasks];
-      const sourceIndex = reorderedTasks.findIndex(
-        (item) => item.id === sourceTask.id,
-      );
+      if (activeTab === "All Tasks") {
+        return reorderedTasks;
+      }
 
-      const [movedTask] = reorderedTasks.splice(sourceIndex, 1);
-      const targetIndex = reorderedTasks.findIndex(
-        (item) => item.id === targetTask.id,
-      );
+      let index = 0;
 
-      const insertIndex =
-        result.source.index < result.destination.index
-          ? targetIndex + 1
-          : targetIndex;
+      return previousTasks.map((item) => {
+        if (item.status === activeTab) {
+          return reorderedTasks[index++];
+        }
 
-      reorderedTasks.splice(insertIndex, 0, movedTask);
-
-      return reorderedTasks;
+        return item;
+      });
     });
   }
 
@@ -143,6 +143,11 @@ function TaskManager() {
     activeTab === "All Tasks"
       ? tasks
       : tasks.filter((item) => item.status === activeTab);
+
+  console.log(
+    "Task IDs:",
+    tasks.map((item) => ({ title: item.title, id: item.id })),
+  );
 
   const todoCount = tasks.filter((item) => item.status === "To Do").length;
 
@@ -212,7 +217,6 @@ function TaskManager() {
             value={task}
             onChange={(event) => setTask(event.target.value)}
             placeholder="What do you need to do?"
-            aria-label="Task title"
             className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-indigo-950"
           />
 
@@ -286,78 +290,60 @@ function TaskManager() {
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                          }}
-                          className={`rounded-xl border bg-white p-4 transition dark:bg-slate-900 ${
+                          style={provided.draggableProps.style}
+                          className={`rounded-lg border p-4 bg-white dark:bg-slate-900 ${
                             snapshot.isDragging
-                              ? "border-indigo-400 shadow-lg"
-                              : "border-slate-200 hover:border-indigo-300 dark:border-slate-800 dark:hover:border-indigo-700"
+                              ? "border-indigo-500 shadow-lg"
+                              : "border-slate-200 dark:border-slate-700"
                           }`}
                         >
-                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex min-w-0 flex-1 items-start gap-3">
-                              <span
-                                {...provided.dragHandleProps}
-                                className="mt-1 cursor-grab select-none text-slate-400 active:cursor-grabbing"
-                                title="Drag to reorder"
-                                aria-label={`Drag ${item.title} to reorder`}
-                              >
-                                ⠿
-                              </span>
+                          <span
+                            {...provided.dragHandleProps}
+                            style={{ touchAction: "none " }}
+                          >
+                            ⠿
+                          </span>
+                          <p
+                            className={
+                              item.status === "Done"
+                                ? "line-through text-gray-400"
+                                : "font-semibold"
+                            }
+                          >
+                            {item.title}
+                          </p>
 
-                              <div className="min-w-0 flex-1">
-                                <p
-                                  className={`break-words font-semibold ${
-                                    item.status === "Done"
-                                      ? "text-slate-400 line-through"
-                                      : "text-slate-800 dark:text-slate-100"
-                                  }`}
-                                >
-                                  {item.title}
-                                </p>
+                          <p className="my-2 text-sm">Status: {item.status}</p>
 
-                                <span
-                                  className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle(item.status)}`}
-                                >
-                                  {item.status}
-                                </span>
-                              </div>
-                            </div>
+                          <select
+                            value={item.status}
+                            onChange={(event) =>
+                              updateStatus(item.id, event.target.value)
+                            }
+                            className="border rounded bg-white p-2 text-black dark:text-black" 
+                          >
+                            {statusOptions.map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
 
-                            <div className="flex flex-wrap gap-2">
-                              <select
-                                value={item.status}
-                                onChange={(event) =>
-                                  updateStatus(item.id, event.target.value)
-                                }
-                                aria-label={`Status for ${item.title}`}
-                                className="max-w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-                              >
-                                {statusOptions.map((status) => (
-                                  <option key={status} value={status}>
-                                    {status}
-                                  </option>
-                                ))}
-                              </select>
+                          <button
+                            type="button"
+                            onClick={() => editTask(item.id)}
+                            className="ml-2 rounded bg-yellow-100 px-3 py-2 dark:text-black"
+                          >
+                            Edit
+                          </button>
 
-                              <button
-                                type="button"
-                                onClick={() => editTask(item.id)}
-                                className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900"
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => deleteTask(item.id)}
-                                className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 dark:bg-rose-950 dark:text-rose-300 dark:hover:bg-rose-900"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteTask(item.id)}
+                            className="ml-2 rounded bg-red-100 px-3 py-2 dark:text-black"
+                          >
+                            Delete
+                          </button>
                         </div>
                       )}
                     </Draggable>
