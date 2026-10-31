@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { AuthContext } from "./contexts/AuthContext";
+import Button from "./components/Button";
 
 const statusOptions = ["To Do", "In Progress", "Done"];
 
 function TaskManager() {
   const { user } = useContext(AuthContext);
-
   const storageKey = user
     ? `task-manager-tasks:${user.username.toLowerCase()}`
     : "task-manager-tasks";
@@ -16,9 +16,11 @@ function TaskManager() {
     try {
       const savedTasks = localStorage.getItem(storageKey);
       const parsedTasks = savedTasks ? JSON.parse(savedTasks) : [];
+
       if (!Array.isArray(parsedTasks)) {
         return [];
       }
+
       return parsedTasks.map((item) => ({
         ...item,
         id: item.id ?? crypto.randomUUID(),
@@ -42,7 +44,6 @@ function TaskManager() {
   // Adds a new task or updates an existing task
   function addTask(event) {
     event.preventDefault();
-
     const trimmedTask = task.trim();
 
     if (!trimmedTask) {
@@ -65,6 +66,7 @@ function TaskManager() {
 
       setTasks((previousTasks) => [...previousTasks, newTask]);
     }
+
     setTask("");
   }
 
@@ -106,7 +108,6 @@ function TaskManager() {
   }
 
   // Handles the task drag-and-reorder operation and updates task order
-
   function handleDragEnd(result) {
     if (!result.destination) {
       return;
@@ -117,9 +118,7 @@ function TaskManager() {
     }
 
     const reorderedTasks = [...filteredTasks];
-
     const [movedTask] = reorderedTasks.splice(result.source.index, 1);
-
     reorderedTasks.splice(result.destination.index, 0, movedTask);
 
     setTasks((previousTasks) => {
@@ -143,11 +142,6 @@ function TaskManager() {
     activeTab === "All Tasks"
       ? tasks
       : tasks.filter((item) => item.status === activeTab);
-
-  console.log(
-    "Task IDs:",
-    tasks.map((item) => ({ title: item.title, id: item.id })),
-  );
 
   const todoCount = tasks.filter((item) => item.status === "To Do").length;
 
@@ -180,32 +174,40 @@ function TaskManager() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight">My Tasks</h2>
+        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white p-4">
+          My Tasks
+        </h2>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 px-4">
         <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">To Do</p>
-          <p className="mt-2 text-3xl font-bold">{todoCount}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+            {todoCount}
+          </p>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             In Progress
           </p>
-          <p className="mt-2 text-3xl font-bold">{progressCount}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+            {progressCount}
+          </p>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Completed
           </p>
-          <p className="mt-2 text-3xl font-bold">{completedCount}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+            {completedCount}
+          </p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="text-lg font-semibold">
+      <section className="rounded-2xl border border-slate-200 bg-white sm:p-6 dark:border-slate-800 dark:bg-slate-900 px-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
           {editId !== null ? "Edit task" : "Add a new task"}
         </h3>
 
@@ -217,56 +219,54 @@ function TaskManager() {
             value={task}
             onChange={(event) => setTask(event.target.value)}
             placeholder="What do you need to do?"
-            className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-indigo-950"
+            className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-indigo-950"
           />
 
-          <button
-            type="submit"
-            className="rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700"
-          >
+          <Button type="submit">
             {editId !== null ? "Save changes" : "+ Add task"}
-          </button>
+          </Button>
 
           {editId !== null && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="rounded-lg border border-slate-300 px-4 py-3 font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-            >
+            <Button variant="secondary" onClick={cancelEdit}>
               Cancel
-            </button>
+            </Button>
           )}
         </form>
       </section>
 
       <section>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 px-4">
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.label}
               type="button"
+              variant={activeTab === tab.label ? "primary" : "secondary"}
               onClick={() => setActiveTab(tab.label)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`text-sm ${
                 activeTab === tab.label
-                  ? "bg-indigo-600 text-white"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                  : "border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
               }`}
             >
               {tab.label}
               <span className="ml-2 opacity-75">{tab.count}</span>
-            </button>
+            </Button>
           ))}
         </div>
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-3 px-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold">{activeTab}</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            {activeTab}
+          </h3>
         </div>
 
         {filteredTasks.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 px-5 py-12 text-center dark:border-slate-700">
-            <p className="text-lg font-semibold">No tasks here yet</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">
+              No tasks here yet
+            </p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Add a task or choose another filter.
             </p>
@@ -291,7 +291,7 @@ function TaskManager() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           style={provided.draggableProps.style}
-                          className={`rounded-lg border p-4 bg-white dark:bg-slate-900 ${
+                          className={`rounded-lg border bg-white p-4 dark:bg-slate-900 ${
                             snapshot.isDragging
                               ? "border-indigo-500 shadow-lg"
                               : "border-slate-200 dark:border-slate-700"
@@ -299,51 +299,58 @@ function TaskManager() {
                         >
                           <span
                             {...provided.dragHandleProps}
-                            style={{ touchAction: "none " }}
+                            className="text-slate-500 dark:text-slate-400"
                           >
                             ⠿
                           </span>
+
                           <p
-                            className={
+                            className={`font-semibold ${
                               item.status === "Done"
-                                ? "line-through text-gray-400"
-                                : "font-semibold"
-                            }
+                                ? "line-through text-slate-400 dark:text-slate-500"
+                                : "text-slate-900 dark:text-white"
+                            }`}
                           >
                             {item.title}
                           </p>
 
-                          <p className="my-2 text-sm">Status: {item.status}</p>
+                          <p className="my-2 text-sm text-slate-600 dark:text-slate-300">
+                            Status: {item.status}
+                          </p>
 
                           <select
                             value={item.status}
                             onChange={(event) =>
                               updateStatus(item.id, event.target.value)
                             }
-                            className="border rounded bg-white p-2 text-black dark:text-black" 
+                            className="rounded-lg border border-slate-300 bg-white p-2 text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
                           >
                             {statusOptions.map((status) => (
-                              <option key={status} value={status}>
+                              <option
+                                key={status}
+                                value={status}
+                                className="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200"
+                              >
                                 {status}
                               </option>
                             ))}
                           </select>
 
-                          <button
-                            type="button"
-                            onClick={() => editTask(item.id)}
-                            className="ml-2 rounded bg-yellow-100 px-3 py-2 dark:text-black"
-                          >
-                            Edit
-                          </button>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() => editTask(item.id)}
+                            >
+                              Edit
+                            </Button>
 
-                          <button
-                            type="button"
-                            onClick={() => deleteTask(item.id)}
-                            className="ml-2 rounded bg-red-100 px-3 py-2 dark:text-black"
-                          >
-                            Delete
-                          </button>
+                            <Button
+                              variant="danger"
+                              onClick={() => deleteTask(item.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </Draggable>

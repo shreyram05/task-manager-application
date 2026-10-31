@@ -97,7 +97,7 @@ export function AuthProvider({ children }) {
 
     const newAccount = {
       username: cleanUsername,
-      password,
+      password: password,
     };
 
     try {
@@ -111,14 +111,7 @@ export function AuthProvider({ children }) {
         error: "Unable to save this account in your browser.",
       };
     }
-
-    if (!saveLogin(cleanUsername)) {
-      return {
-        success: false,
-        error:
-          "Account created, but the login session could not be saved. Please log in.",
-      };
-    }
+    
     return {
       success: true,
     };
